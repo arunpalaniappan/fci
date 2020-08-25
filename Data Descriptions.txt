@@ -1,0 +1,5 @@
+Road length is the length of municipal roads in the states.
+
+Orissa is odisha, pondicherry is puducherry, uttaranchal is uttarkhand.
+
+BPL for andhra should be calculated only till 2013. After that, andhra was bifurcated. In that case, we don't know what proportion are in andhra and in telangana.
