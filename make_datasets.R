@@ -235,3 +235,4 @@ bpl_perc2011$year = 2011
 
 #Gathering infant mortality rate
 inf_mr <- read.xlsx("state wise infant mortality rate.xlsx")
+inf_mr$year = as.numeric(inf_mr$year)
