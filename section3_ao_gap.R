@@ -12,17 +12,20 @@ View(zone_ao)
 
 #Analysis 1 - with road length
 ao_roadl = inner_join(all_off, road_l, by=c('State.UT', 'year'))
+ao_roadl = ao_roadl[which(ao_roadl$utilisation_ratio < 1 & ao_roadl$utilisation_ratio > 0),]
 cor(ao_roadl$utilisation_ratio, ao_roadl$length)
 cor(ao_roadl$utilisation_ratio, ao_roadl$log_length)
 
 #Analysis 2 - with road density
 ao_roadd = inner_join(all_off, roadd_sqkm, by=c('State.UT', 'year'))
+ao_roadd = ao_roadd[which(ao_roadd$utilisation_ratio < 1 & ao_roadd$utilisation_ratio > 0),]
 cor(ao_roadd$utilisation_ratio, ao_roadd$length)
 cor(ao_roadd$utilisation_ratio, ao_roadd$log_density)
 
 #Analysis 3 - with state highway length
 ao_shl = inner_join(all_off, sh_l, by = c('State.UT', 'year'))
-cor(ao_shl$utilisation_ratio, ao_shl$length)
+ao_shl = ao_shl[which(ao_shl$utilisation_ratio < 1 & ao_shl$utilisation_ratio > 0),]
+cor(ao_shl$utilisation_ratio, ao_shl$log_length)
 
 #Analysis 4 - with SH density
 ao_shd = inner_join(all_off, sh_d, by=c("State.UT", "year"))
@@ -62,3 +65,5 @@ imr_ao = remove_outliers(imr_ao, c('offtake', 'mortality.rate', 'log_offtake', '
 ggplot(imr_ao, aes(utilisation_ratio, mortality.rate)) + geom_point() + geom_smooth(method=lm)
 cor(imr_ao$mortality.rate, imr_ao$offtake) #Not as expected. To be -ve
 cor(imr_ao$mortality.rate, imr_ao$utilisation_ratio) #As expected but not significant
+fit <- lm(imr_ao$mortality.rate ~ imr_ao$utilisation_ratio)
+summary(fit)$r.squared
