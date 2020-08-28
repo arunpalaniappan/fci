@@ -91,6 +91,7 @@ rice_wheat = inner_join(rice_state, wheat_state, by=c('State.UT'))
 rice_wheat$perc_rice = rice_wheat$rice_allotment / (rice_wheat$rice_allotment + rice_wheat$wheat_allotment)
 rice_wheat$perc_wheat = rice_wheat$wheat_allotment / (rice_wheat$rice_allotment + rice_wheat$wheat_allotment)
 
+
 #Total allotment offtake
 all_off = inner_join(rice, wheat, by=c('State.UT', 'year'))
 all_off$offtake = all_off$offtake.x + all_off$offtake.y
@@ -98,10 +99,12 @@ all_off$allotment = all_off$allotment.x + all_off$allotment.y
 all_off$zone = all_off$zone.x
 all_off$offtake.x = all_off$offtake.y = all_off$zone.x = NULL
 all_off$allotment.x = all_off$allotment.y = all_off$zone.y = NULL
+all_off$utilisation_ratio = all_off$offtake / all_off$allotment
+all_off = remove_outliers(all_off, c("allotment", "offtake", "utilisation_ratio"))
 
-rice$grain = "rice"
-wheat$grain = "wheat"
-rice_wheat = rbind(rice, wheat)
+#rice$grain = "rice"
+#wheat$grain = "wheat"
+#rice_wheat = rbind(rice, wheat)
 
 state_ao = read.xlsx("state_ao.xlsx")
 
@@ -167,7 +170,7 @@ state_total_ao = all_off %>% group_by(State.UT) %>%
 #Aggreagating of states to get year wise data
 year_total_ao = all_off %>% group_by(year) %>% 
   summarise(allotment = sum(allotment), offtake = sum(offtake))
-View(year_total_ao)
+
 ## Making district office count
 #The below code is for making district wise offtake allotment
 add_row_entries_sao <- function(sao, idx1, idx2)
@@ -208,7 +211,6 @@ df_dcp$dcp = 0
 dcp_status <- read.xlsx("DCP Status.xlsx")
 dcp_status = dcp_status[complete.cases(dcp_status),]
 #wef - with effect from. The year from which dcp is with effect
-
 for(i in 1:dim(dcp_status)[1])
 {
   year = dcp_status[i, ]$wef

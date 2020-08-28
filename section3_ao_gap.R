@@ -25,14 +25,19 @@ cor(ao_roadd$utilisation_ratio, ao_roadd$log_density)
 #Analysis 3 - with state highway length
 ao_shl = inner_join(all_off, sh_l, by = c('State.UT', 'year'))
 ao_shl = ao_shl[which(ao_shl$utilisation_ratio < 1 & ao_shl$utilisation_ratio > 0),]
+cor(ao_shl$utilisation_ratio, ao_shl$length)
 cor(ao_shl$utilisation_ratio, ao_shl$log_length)
 
 #Analysis 4 - with SH density
 ao_shd = inner_join(all_off, sh_d, by=c("State.UT", "year"))
+ao_shd = ao_shd[which(ao_shd$utilisation_ratio < 1 & ao_shd$utilisation_ratio > 0),]
+cor(ao_shd$utilisation_ratio, ao_shd$density)
 cor(ao_shd$utilisation_ratio, ao_shd$log_density)
 
 #Analysis 5 - with railway length
 ao_rwl = inner_join(all_off, rw_l, by=c('State.UT', 'year'))
+ao_rwl = ao_rwl[which(ao_rwl$utilisation_ratio < 1 & ao_rwl$utilisation_ratio > 0),]
+cor(ao_rwl$utilisation_ratio, ao_rwl$length)
 cor(ao_rwl$utilisation_ratio, ao_rwl$log_length)
 
 #Analysis 6 - with railway density
@@ -42,16 +47,24 @@ cor(ao_rwd$utilisation_ratio, ao_rwd$log_density)
 
 #Analysis 7 - with state GSDP
 ao_gsdp = inner_join(all_off, gsdp, by=c('State.UT', 'year'))
+ao_gsdp = ao_gsdp[which(ao_gsdp$utilisation_ratio < 1 & ao_gsdp$utilisation_ratio > 0),]
 cor(ao_gsdp$log_gsdp, ao_gsdp$utilisation_ratio)
+cor(ao_gsdp$gsdp, ao_gsdp$utilisation_ratio)
 
 #Analysis 8 - With DO Count
+sao = sao[which(sao$utilisation_ratio < 1 & sao$utilisation_ratio > 0),]
 cor(sao$utilisation_ratio, sao$do_count)
 
 #Analysis 9 - with DCP
 cor(df_dcp$dcp, df_dcp$utilisation_ratio)
 fit <- lm(df_dcp$utilisation_ratio ~ df_dcp$dcp)
+fit
 
-#Perform t-test in DCP
+#Performing t-test for DCP [Resource : https://statistics.berkeley.edu/computing/r-t-tests]
+dcp1 = df_dcp %>% filter(dcp == 1) %>% select(dcp, utilisation_ratio)
+dcp0 = df_dcp %>% filter(dcp == 0) %>% select(dcp, utilisation_ratio)
+t.test(dcp1$utilisation_ratio, dcp0$utilisation_ratio)
+
 
 
 #Child mortality rate and ao gap
