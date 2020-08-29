@@ -16,7 +16,7 @@ remove_outliers <- function(data_set, cols)
   #data_set = all_off
   #Columns is a list of columns for which outlier is to be removed
   idxs = c()
-  col = "allotment"
+  # col = "allotment" - recently removed. Probably this line is useless
   for(col in cols)
   {
     mn = lapply(data_set[col], mean)
@@ -29,6 +29,28 @@ remove_outliers <- function(data_set, cols)
     data_set = data_set[-idxs, ]
   return (data_set)
 }
+
+#Stricter removal of outliers
+remove_outliers_strict <- function(data_set, cols)
+{
+  #cols = names(all_off)[-1:-2]
+  #data_set = all_off
+  #Columns is a list of columns for which outlier is to be removed
+  idxs = c()
+  #col = "allotment"
+  for(col in cols)
+  {
+    lb = quantile(data_set[[col]], 0.1)
+    ub = quantile(data_set[[col]], 0.9)
+    #Outliers are points where are away from mean by 3*std
+    idxs = c(idxs, which(data_set[col] > ub | data_set[col] < lb))
+  }
+  idxs = unique(idxs)
+  if(length(idxs) > 0)
+    data_set = data_set[-idxs, ]
+  return (data_set)
+}
+
 
 #Follows zonal rankings as per FCI
 assign_zones <- function(df)
@@ -206,7 +228,10 @@ sao$utilisation_ratio = sao$offtake / sao$allotment
 sao <- remove_outliers(sao, c("utilisation_ratio", "do_count"))
 
 #DCP Analysis
-df_dcp = rice_wheat
+rice$grain = "rice"
+wheat$grain = "wheat"
+df_dcp = rbind(rice, wheat)
+rice$grain = wheat$grain = NULL
 df_dcp$dcp = 0
 dcp_status <- read.xlsx("DCP Status.xlsx")
 dcp_status = dcp_status[complete.cases(dcp_status),]
@@ -225,6 +250,7 @@ df_dcp <- df_dcp[complete.cases(df_dcp), ]
 df_dcp <- df_dcp[is.finite(df_dcp$utilisation_ratio),]
 df_dcp <- df_dcp[which(df_dcp$utilisation_ratio <= 1), ]
 df_dcp <- remove_outliers(df_dcp, c("utilisation_ratio"))
+
 
 #Reading population data
 pop <- read.xlsx("projected_population_by_state_2012_2036.xlsx")
