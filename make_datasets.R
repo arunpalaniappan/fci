@@ -30,26 +30,26 @@ remove_outliers <- function(data_set, cols)
   return (data_set)
 }
 
-#Stricter removal of outliers
-remove_outliers_strict <- function(data_set, cols)
-{
-  #cols = names(all_off)[-1:-2]
-  #data_set = all_off
-  #Columns is a list of columns for which outlier is to be removed
-  idxs = c()
-  #col = "allotment"
-  for(col in cols)
-  {
-    lb = quantile(data_set[[col]], 0.1)
-    ub = quantile(data_set[[col]], 0.9)
-    #Outliers are points where are away from mean by 3*std
-    idxs = c(idxs, which(data_set[col] > ub | data_set[col] < lb))
-  }
-  idxs = unique(idxs)
-  if(length(idxs) > 0)
-    data_set = data_set[-idxs, ]
-  return (data_set)
-}
+# #Stricter removal of outliers
+# remove_outliers_strict <- function(data_set, cols)
+# {
+#   #cols = names(all_off)[-1:-2]
+#   #data_set = all_off
+#   #Columns is a list of columns for which outlier is to be removed
+#   idxs = c()
+#   #col = "allotment"
+#   for(col in cols)
+#   {
+#     lb = quantile(data_set[[col]], 0.1)
+#     ub = quantile(data_set[[col]], 0.9)
+#     #Outliers are points where are away from mean by 3*std
+#     idxs = c(idxs, which(data_set[col] > ub | data_set[col] < lb))
+#   }
+#   idxs = unique(idxs)
+#   if(length(idxs) > 0)
+#     data_set = data_set[-idxs, ]
+#   return (data_set)
+# }
 
 
 #Follows zonal rankings as per FCI
@@ -86,6 +86,7 @@ generate_bpl_data <- function(pop, bpl, bpl_cr)
     }
   }
   #Removing entries for andhra pradesh after 2013
+  #AP was bifurcated in 2013 and bpl data for 2011 is of united AP
   state = "ANDHRA PR"
   bpl = bpl[-which(bpl$State.UT == state & bpl$year > 2013),]
   #Removing entries where bpl percent is less than 0
@@ -96,23 +97,26 @@ generate_bpl_data <- function(pop, bpl, bpl_cr)
   return (bpl)
 }
 
-rice <- read.xlsx("rice.xlsx")
-wheat <- read.xlsx("wheat.xlsx")
+rice <- read.xlsx("Data/rice.xlsx")
+wheat <- read.xlsx("Data/wheat.xlsx")
 rice <- remove_outliers(rice, c("allotment", "offtake"))
 wheat <- remove_outliers(wheat, c("allotment", "offtake"))
 
 #Splitting of states into rice consuming and wheat consuming
-rice_state = rice %>% group_by(State.UT) %>% 
+#rice_state = rice %>% group_by(State.UT) %>% 
+ # summarise(allotment = sum(allotment))
+rice_summary = rice %>% group_by(State.UT) %>% 
   summarise(allotment = sum(allotment))
-names(rice_state)[2] = "rice_allotment"
-wheat_state = wheat %>% group_by(State.UT) %>% 
+names(rice_summary)[2] = "rice_allotment"
+#wheat_state = wheat %>% group_by(State.UT) %>% 
+  #summarise(allotment = sum(allotment))
+wheat_summary = wheat %>% group_by(State.UT) %>% 
   summarise(allotment = sum(allotment))
-names(wheat_state)[2] = "wheat_allotment" 
+names(wheat_summary)[2] = "wheat_allotment" 
 
-rice_wheat = inner_join(rice_state, wheat_state, by=c('State.UT'))
+rice_wheat = inner_join(rice_summary, wheat_summary, by=c('State.UT'))
 rice_wheat$perc_rice = rice_wheat$rice_allotment / (rice_wheat$rice_allotment + rice_wheat$wheat_allotment)
 rice_wheat$perc_wheat = rice_wheat$wheat_allotment / (rice_wheat$rice_allotment + rice_wheat$wheat_allotment)
-
 
 #Total allotment offtake
 all_off = inner_join(rice, wheat, by=c('State.UT', 'year'))
@@ -128,10 +132,11 @@ all_off = remove_outliers(all_off, c("allotment", "offtake", "utilisation_ratio"
 #wheat$grain = "wheat"
 #rice_wheat = rbind(rice, wheat)
 
-state_ao = read.xlsx("state_ao.xlsx")
+#Summary of total all_off state wise
+state_ao = read.xlsx("Data/state_ao.xlsx")
 
 #Getting road length data
-road_l <- read.xlsx("Road Length 2010-16.XLSX")
+road_l <- read.xlsx("Data/Road Length 2010-16.XLSX")
 road_l <- gather(road_l, key='year', value='length', -one_of('State.UT'))
 road_l <- road_l[complete.cases(road_l),]
 road_l$year = as.numeric(road_l$year)
@@ -139,7 +144,8 @@ road_l$log_length = log(road_l$length)
 road_l <- remove_outliers(road_l, c("length", "log_length"))
 
 #Getting road density data
-roadd_sqkm <- read.xlsx("Road Density per sq km 2010-16.xlsx")
+#Road density was made using dividing length of road and area of state
+roadd_sqkm <- read.xlsx("Data/Road Density per sq km 2010-16.xlsx")
 roadd_sqkm <- gather(roadd_sqkm, key='year', value='length', -one_of('State.UT'))
 roadd_sqkm <- roadd_sqkm[complete.cases(roadd_sqkm),]
 roadd_sqkm$log_density = log(roadd_sqkm$length)
@@ -147,7 +153,7 @@ roadd_sqkm$year = as.numeric(roadd_sqkm$year)
 roadd_sqkm <- remove_outliers(roadd_sqkm, c("length", "log_density"))
 
 #Getting state highway length
-sh_l <- read.xlsx("SH Length 2011-16.xlsx")
+sh_l <- read.xlsx("Data/SH Length 2011-16.xlsx")
 sh_l <- gather(sh_l, key='year', value='length', -one_of('State.UT'))
 sh_l <- sh_l[complete.cases(sh_l),]
 sh_l$log_length = log(sh_l$length)
@@ -155,7 +161,7 @@ sh_l$year = as.numeric(sh_l$year)
 sh_l <- remove_outliers(sh_l, names(sh_l)[-1:-2])
 
 #Getting state highway density
-sh_d <- read.xlsx("SH Density 2011-16.xlsx")
+sh_d <- read.xlsx("Data/SH Density 2011-16.xlsx")
 sh_d <- gather(sh_d, key='year', value='density', -one_of('State.UT'))
 sh_d <- sh_d[complete.cases(sh_d),]
 sh_d$log_density = log(sh_d$density)
@@ -163,7 +169,7 @@ sh_d$year = as.numeric(sh_d$year)
 sh_d <- remove_outliers(sh_d, names(sh_d)[-1:-2])
 
 #Getting railway length data
-rw_l <- read.xlsx("Railway Length 2011-17.xlsx")
+rw_l <- read.xlsx("Data/Railway Length 2011-17.xlsx")
 rw_l <- gather(rw_l, key='year', value='length', -one_of('State.UT'))
 rw_l <- rw_l[complete.cases(rw_l),]
 rw_l$log_length = log(rw_l$length)
@@ -171,14 +177,14 @@ rw_l$year = as.numeric(rw_l$year)
 rw_l <- remove_outliers(rw_l, names(rw_l)[-1:-2])
 
 #Getting railway density data
-rw_d <- read.xlsx("Railway Density per sq km 2011-17.xlsx")
+rw_d <- read.xlsx("Data/Railway Density per sq km 2011-17.xlsx")
 rw_d <- gather(rw_d, key='year', value='density', -one_of('State.UT'))
 rw_d <- rw_d[complete.cases(rw_d),]
 rw_d$log_density = log(rw_d$density)
 rw_d$year = as.numeric(rw_d$year)
 
 #Getting GSDP data
-gsdp <- read.xlsx("GSDP Current Price 2011-20.xlsx")
+gsdp <- read.xlsx("Data/GSDP Current Price 2011-20.xlsx")
 gsdp = gather(gsdp, key='year', value='gsdp', -one_of('State.UT'))
 gsdp$year = substr(gsdp$year, 1, 4)
 gsdp = gsdp[complete.cases(gsdp),]
@@ -221,7 +227,7 @@ make_district_office_count <- function(sao, fci_do_count)
   return (sao)
 }
 
-fci_do_count = read.xlsx("FCI District Office Count.xlsx")
+fci_do_count = read.xlsx("Data/FCI District Office Count.xlsx")
 sao <- make_district_office_count(state_total_ao, fci_do_count)
 sao$ao_gap = sao$allotment - sao$offtake
 sao$utilisation_ratio = sao$offtake / sao$allotment
@@ -233,7 +239,7 @@ wheat$grain = "wheat"
 df_dcp = rbind(rice, wheat)
 rice$grain = wheat$grain = NULL
 df_dcp$dcp = 0
-dcp_status <- read.xlsx("DCP Status.xlsx")
+dcp_status <- read.xlsx("Data/DCP Status.xlsx")
 dcp_status = dcp_status[complete.cases(dcp_status),]
 #wef - with effect from. The year from which dcp is with effect
 for(i in 1:dim(dcp_status)[1])
@@ -253,14 +259,10 @@ df_dcp <- remove_outliers(df_dcp, c("utilisation_ratio"))
 
 
 #Reading population data
-pop <- read.xlsx("projected_population_by_state_2012_2036.xlsx")
+pop <- read.xlsx("Data/projected_population_by_state_2012_2036.xlsx")
 pop$log_pop = log(pop$Population)
 
 #Reading BPL Population data 
-bpl_perc2011 <- read.xlsx('BPL data.xlsx')
+bpl_perc2011 <- read.xlsx("Data/BPL data.xlsx")
 names(bpl_perc2011)[2] = "percent"
 bpl_perc2011$year = 2011
-
-#Gathering infant mortality rate
-inf_mr <- read.xlsx("state wise infant mortality rate.xlsx")
-inf_mr$year = as.numeric(inf_mr$year)
