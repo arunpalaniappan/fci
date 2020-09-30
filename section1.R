@@ -7,7 +7,7 @@ library(reshape2)
 library(ggplot2)
 library(e1071)
 
-subsidy_data <- read.xlsx("Food Subsidy.xlsx")
+subsidy_data <- read.xlsx("data/Food Subsidy.xlsx")
 
 names(subsidy_data)
 names(subsidy_data)[which(names(subsidy_data) == "subsidy.released.for.current.year")] = "sr_cy"

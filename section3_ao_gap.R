@@ -1,7 +1,33 @@
-source("make_datasets.R")
+source("C:/Users/ARUN PALANIAPPAN/Desktop/FCI/Final Work/make_datasets.R")
+
+make_financial_year <- function(year)
+{
+  current_year = as.character(year)
+  next_year = as.character(year + 1)
+  financial_year = paste(current_year, substr(next_year, 3, 4), sep="-")
+  return (financial_year)
+}
+
+year_total_ao$financial_year = make_financial_year(year_total_ao$year)
+
+ggplot(year_total_ao, mapping = aes(x=financial_year)) +
+  geom_line(aes(y=allotment, group=1), size=2, color="green", labels="Total Allotment") + 
+  geom_line(aes(y=offtake, group=1), size=2, color="blue", labels="Total Offtake") + 
+  labs(title="Allotmnt and offtake over years", x="Financial Year", y="Weigth in '000 MT") + 
+  theme(axis.text.x = element_text(angle=45))
+
 
 print (paste('Utilisation ratio for nation 2003-2019',sum(state_ao$offtake) / sum(state_ao$allotment)))
 print (paste('Foodgrains wasted is 2003-2019', sum(state_ao$allotment) - sum(state_ao$offtake)))
+
+df = all_off[which(all_off$year > 2009),]
+df$zone = df$allotment = df$offtake = NULL
+df = spread(df, year, -State.UT)
+for(col in names(df)[-1])
+{
+  df[col] = round(df[col], 2)
+}
+write.xlsx(df, "Data/utilisation_ratio_state_wise_2010_2019.xlsx")
 
 zone_ao = state_ao[c('allotment', 'offtake')] %>% aggregate(by=list(state_ao$zone), sum)
 zone_ao$utilisation_ratio = zone_ao$offtake / zone_ao$allotment

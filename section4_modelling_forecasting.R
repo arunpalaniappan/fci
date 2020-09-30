@@ -94,6 +94,7 @@ rp = remove_outliers(rp, c("Population", "rice_allotment", "rice_moving_perc", "
 rice_pop_fit <- lm(rice_allotment ~ Population + rice_moving_perc, rp)
 summary(rice_pop_fit)$r.squared
 rice_pop_fit$coefficients
+summary(rice_pop_fit)
 
 rice_bpl_pop_fit <- lm(rice_allotment ~ bpl_pop + rice_moving_perc, rbp)
 summary(rice_bpl_pop_fit)$r.squared
@@ -128,16 +129,18 @@ wbp$rice_allotment = wbp$rice_moving_perc = NULL
 
 wp = inner_join(rw, pop, by=c('State.UT', 'year'))
 wp$rice_allotment = wp$rice_moving_perc = wp$log_pop = NULL
+wp = remove_outliers(wp, c("Population", "wheat_moving_perc", "wheat_allotment"))
 
 #Wheat allotment with population, percentage as past 3 years moving average
 wheat_pop_fit <- lm(wheat_allotment ~ Population + wheat_moving_perc, wp)
 summary(wheat_pop_fit)$r.squared
 
+
+#Other models built
 #Wheat allotment with bpl population, percentage taken as moving average of past 3 years
 wheat_bpl_pop_fit <- lm(wheat_allotment ~ bpl_pop + wheat_moving_perc, wbp)
 summary(wheat_bpl_pop_fit)$r.squared
 
-#Other models built
 fit <- lm(wheat_allotment ~ Population, wp)
 summary(fit)$r.squared
 
@@ -241,7 +244,9 @@ temp = all_india[, 2:11]*price / crore
 wheat_expenditure = gather(temp, key="year", "wheat expenditure")
 
 rice_wheat_expenditure = inner_join(rice_expenditure, wheat_expenditure, by=c("year"))
-
+rice_wheat_expenditure$`rice expenditure` = round(rice_wheat_expenditure$`rice expenditure`, 2)
+rice_wheat_expenditure$`wheat expenditure` = round(rice_wheat_expenditure$`wheat expenditure`, 2)
+rice_wheat_expenditure$year = as.numeric(rice_wheat_expenditure$year)
 write.xlsx(rice_wheat_expenditure, "Data/rice_wheat_expenditure.xlsx")
 
 #Analysis with total allotment
