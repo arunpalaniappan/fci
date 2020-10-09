@@ -128,6 +128,15 @@ all_off$allotment.x = all_off$allotment.y = all_off$zone.y = NULL
 all_off$utilisation_ratio = all_off$offtake / all_off$allotment
 all_off = remove_outliers(all_off, c("allotment", "offtake", "utilisation_ratio"))
 
+# df = all_off
+# df$zone = df$allotment = df$offtake = NULL
+# df = spread(df, year, -State.UT)
+# for(col in names(df)[-1])
+# {
+#   df[col] = round(df[col], 2)
+# }
+# write.xlsx(df, "Data/utilisation_ratio_state_wise_2010_2019.xlsx")
+ur = read.xlsx("Data/utilisation_ratio_state_wise_2010_2019.xlsx")
 #rice$grain = "rice"
 #wheat$grain = "wheat"
 #rice_wheat = rbind(rice, wheat)
@@ -137,50 +146,50 @@ state_ao = read.xlsx("Data/state_ao 2003-19.xlsx")
 
 #Getting road length data
 road_l <- read.xlsx("Data/Road Length 2010-16.XLSX")
-road_l <- gather(road_l, key='year', value='length', -one_of('State.UT'))
+road_l <- gather(road_l, key='year', value='ro_length', -one_of('State.UT'))
 road_l <- road_l[complete.cases(road_l),]
 road_l$year = as.numeric(road_l$year)
-road_l$log_length = log(road_l$length)
-road_l <- remove_outliers(road_l, c("length", "log_length"))
+road_l$ro_log_length = log(road_l$ro_length)
+road_l <- remove_outliers(road_l, c("ro_length", "ro_log_length"))
 
 #Getting road density data
 #Road density was made using dividing length of road and area of state
 roadd_sqkm <- read.xlsx("Data/Road Density per sq km 2010-16.xlsx")
-roadd_sqkm <- gather(roadd_sqkm, key='year', value='length', -one_of('State.UT'))
+roadd_sqkm <- gather(roadd_sqkm, key='year', value='ro_density', -one_of('State.UT'))
 roadd_sqkm <- roadd_sqkm[complete.cases(roadd_sqkm),]
-roadd_sqkm$log_density = log(roadd_sqkm$length)
+roadd_sqkm$ro_log_density = log(roadd_sqkm$ro_density)
 roadd_sqkm$year = as.numeric(roadd_sqkm$year)
-roadd_sqkm <- remove_outliers(roadd_sqkm, c("length", "log_density"))
+roadd_sqkm <- remove_outliers(roadd_sqkm, c("ro_density", "ro_log_density"))
 
 #Getting state highway length
 sh_l <- read.xlsx("Data/SH Length 2011-16.xlsx")
-sh_l <- gather(sh_l, key='year', value='length', -one_of('State.UT'))
+sh_l <- gather(sh_l, key='year', value='sh_length', -one_of('State.UT'))
 sh_l <- sh_l[complete.cases(sh_l),]
-sh_l$log_length = log(sh_l$length)
+sh_l$sh_log_length = log(sh_l$sh_length)
 sh_l$year = as.numeric(sh_l$year)
 sh_l <- remove_outliers(sh_l, names(sh_l)[-1:-2])
 
 #Getting state highway density
 sh_d <- read.xlsx("Data/SH Density 2011-16.xlsx")
-sh_d <- gather(sh_d, key='year', value='density', -one_of('State.UT'))
+sh_d <- gather(sh_d, key='year', value='sh_density', -one_of('State.UT'))
 sh_d <- sh_d[complete.cases(sh_d),]
-sh_d$log_density = log(sh_d$density)
+sh_d$sh_log_density = log(sh_d$sh_density)
 sh_d$year = as.numeric(sh_d$year)
 sh_d <- remove_outliers(sh_d, names(sh_d)[-1:-2])
 
 #Getting railway length data
 rw_l <- read.xlsx("Data/Railway Length 2011-17.xlsx")
-rw_l <- gather(rw_l, key='year', value='length', -one_of('State.UT'))
+rw_l <- gather(rw_l, key='year', value='rw_length', -one_of('State.UT'))
 rw_l <- rw_l[complete.cases(rw_l),]
-rw_l$log_length = log(rw_l$length)
+rw_l$rw_log_length = log(rw_l$rw_length)
 rw_l$year = as.numeric(rw_l$year)
 rw_l <- remove_outliers(rw_l, names(rw_l)[-1:-2])
 
 #Getting railway density data
 rw_d <- read.xlsx("Data/Railway Density per sq km 2011-17.xlsx")
-rw_d <- gather(rw_d, key='year', value='density', -one_of('State.UT'))
+rw_d <- gather(rw_d, key='year', value='rw_density', -one_of('State.UT'))
 rw_d <- rw_d[complete.cases(rw_d),]
-rw_d$log_density = log(rw_d$density)
+rw_d$rw_log_density = log(rw_d$rw_density)
 rw_d$year = as.numeric(rw_d$year)
 
 #Getting GSDP data
