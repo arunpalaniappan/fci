@@ -19,4 +19,3 @@ ggplot(subsidy_data, mapping = aes(x=year)) +
   geom_line(aes(y=si_cy, group=1), size=2, color="blue", labels="Subsidy Incurred") + 
   labs(title="Subsidy incurred and subsidy released", x="Financial Year", y="Rupees in Crores") + 
   theme(axis.text.x = element_text(angle=45))
-

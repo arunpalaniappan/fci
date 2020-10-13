@@ -41,7 +41,6 @@ ggplot(year_total_ao, mapping = aes(x=financial_year)) +
   labs(title="Allotmnt and offtake over years", x="Financial Year", y="Weigth in '000 MT") + 
   theme(axis.text.x = element_text(angle=45))
 
-
 print (paste('Utilisation ratio for nation 2003-2019',sum(state_ao$offtake) / sum(state_ao$allotment)))
 print (paste('Foodgrains wasted is 2003-2019', sum(state_ao$allotment) - sum(state_ao$offtake)))
 
@@ -58,60 +57,27 @@ ao_road = ao_road[which(ao_road$utilisation_ratio < 1 & ao_road$utilisation_rati
 fit <- lm(utilisation_ratio ~ ro_log_length, ao_road)
 summary(fit)$r.squared
 fit
+summary(fit)
 
 ao_sh = inner_join(all_off, sh_l, by=c('State.UT', 'year'))
 ao_sh$offtake = ao_sh$allotment = ao_sh$zone = NULL
 ao_sh = inner_join(ao_sh, sh_d, by=c('State.UT', 'year'))
 ao_sh = ao_sh[which(ao_sh$utilisation_ratio < 1 & ao_sh$utilisation_ratio > 0),]
 fit <- lm(utilisation_ratio ~ sh_log_length, ao_sh)
-summary(fit)$r.squared
+summary(fit)
 fit
+dim(ao_sh)
+
 
 ao_rail = inner_join(all_off, rw_l, by=c('State.UT', 'year'))
 ao_rail$offtake = ao_rail$allotment = ao_rail$zone = NULL
 ao_rail = inner_join(ao_rail, rw_d, by=c('State.UT', 'year'))
 ao_rail = ao_rail[which(ao_rail$utilisation_ratio < 1 & ao_rail$utilisation_ratio > 0),]
 fit <- lm(utilisation_ratio ~ rw_log_length, ao_rail)
-summary(fit)$r.squared
+summary(fit)
 fit
+dim(ao_rail)
 
-
-#Analysis 1 - with road length
-ao_roadl = inner_join(all_off, road_l, by=c('State.UT', 'year'))
-ao_roadl = ao_roadl[which(ao_roadl$utilisation_ratio < 1 & ao_roadl$utilisation_ratio > 0),]
-cor(ao_roadl$utilisation_ratio, ao_roadl$length)
-cor(ao_roadl$utilisation_ratio, ao_roadl$log_length)
-fit <- lm(ao_roadl$utilisation_ratio ~ ao_roadl$log_length)
-summary(fit)$r.squared
-
-#Analysis 2 - with road density
-ao_roadd = inner_join(all_off, roadd_sqkm, by=c('State.UT', 'year'))
-ao_roadd = ao_roadd[which(ao_roadd$utilisation_ratio < 1 & ao_roadd$utilisation_ratio > 0),]
-cor(ao_roadd$utilisation_ratio, ao_roadd$ro_density)
-cor(ao_roadd$utilisation_ratio, ao_roadd$ro_log_density)
-
-#Analysis 3 - with state highway length
-ao_shl = inner_join(all_off, sh_l, by = c('State.UT', 'year'))
-ao_shl = ao_shl[which(ao_shl$utilisation_ratio < 1 & ao_shl$utilisation_ratio > 0),]
-cor(ao_shl$utilisation_ratio, ao_shl$length)
-cor(ao_shl$utilisation_ratio, ao_shl$log_length)
-
-#Analysis 4 - with SH density
-ao_shd = inner_join(all_off, sh_d, by=c("State.UT", "year"))
-ao_shd = ao_shd[which(ao_shd$utilisation_ratio < 1 & ao_shd$utilisation_ratio > 0),]
-cor(ao_shd$utilisation_ratio, ao_shd$density)
-cor(ao_shd$utilisation_ratio, ao_shd$log_density)
-
-#Analysis 5 - with railway length
-ao_rwl = inner_join(all_off, rw_l, by=c('State.UT', 'year'))
-ao_rwl = ao_rwl[which(ao_rwl$utilisation_ratio < 1 & ao_rwl$utilisation_ratio > 0),]
-cor(ao_rwl$utilisation_ratio, ao_rwl$rw_length)
-cor(ao_rwl$utilisation_ratio, ao_rwl$rw_log_length)
-
-#Analysis 6 - with railway density
-ao_rwd = inner_join(all_off, rw_d, by=c('State.UT', 'year'))
-cor(ao_rwd$utilisation_ratio, ao_rwd$rw_density)
-cor(ao_rwd$utilisation_ratio, ao_rwd$rw_log_density)
 
 
 #Analysis 7 - with state GSDP
@@ -120,13 +86,13 @@ ao_gsdp = ao_gsdp[which(ao_gsdp$utilisation_ratio < 1 & ao_gsdp$utilisation_rati
 cor(ao_gsdp$log_gsdp, ao_gsdp$utilisation_ratio)
 cor(ao_gsdp$gsdp, ao_gsdp$utilisation_ratio)
 fit <- lm(utilisation_ratio ~ log_gsdp, ao_gsdp)
-summary(fit)$r.squared
+summary(fit)
 fit
 
 #Analysis 8 - With DO Count
 sao = sao[which(sao$utilisation_ratio < 1 & sao$utilisation_ratio > 0),]
-fit <- lm(utilisation_ratio ~ do_count, sao)
-summary(fit)$r.squared
+fit <- lm(utilisation_ratio ~ log(do_count), sao)
+summary(fit)
 fit
 
 

@@ -126,6 +126,9 @@ all_off$zone = all_off$zone.x
 all_off$offtake.x = all_off$offtake.y = all_off$zone.x = NULL
 all_off$allotment.x = all_off$allotment.y = all_off$zone.y = NULL
 all_off$utilisation_ratio = all_off$offtake / all_off$allotment
+#Aggreagating of states to get year wise data
+year_total_ao = all_off %>% group_by(year) %>% 
+  summarise(allotment = sum(allotment), offtake = sum(offtake))
 all_off = remove_outliers(all_off, c("allotment", "offtake", "utilisation_ratio"))
 
 # df = all_off
@@ -202,10 +205,6 @@ gsdp$year = as.numeric(gsdp$year)
 
 #Aggregating of years to get state wise data
 state_total_ao = all_off %>% group_by(State.UT) %>% 
-  summarise(allotment = sum(allotment), offtake = sum(offtake))
-
-#Aggreagating of states to get year wise data
-year_total_ao = all_off %>% group_by(year) %>% 
   summarise(allotment = sum(allotment), offtake = sum(offtake))
 
 ## Making district office count

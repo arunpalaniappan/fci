@@ -65,40 +65,14 @@ for(year in c(2006:2019))
 rw = rw[which(rw$wheat_moving_perc > 0 & rw$rice_moving_perc > 0),]
 rw$rice_perc = rw$wheat_perc = NULL
 
-#Making of datasets for rice models
-bpl_change_rate = c()
-ssr = c()
-for(bpl_cr in seq(-1, 3, 0.05))
-{
-  bpl = generate_bpl_data(pop, bpl_perc2011, bpl_cr)
-  rbp = inner_join(bpl, rw, on=c("State.UT", "year"))
-  fit <- lm(rice_allotment ~ bpl_pop, rbp)
-  ssr_ = sum(fit$residuals ^ 2)
-  bpl_change_rate = c(bpl_change_rate, bpl_cr)
-  ssr = c(ssr, ssr_)
-}
-
-rice_bpl_cr = bpl_change_rate[which(ssr == min(ssr))]
-plot(bpl_change_rate, ssr)
-bpl = generate_bpl_data(pop, bpl_perc2011, rice_bpl_cr)
-rbp = inner_join(bpl, rw, on=c("State.UT", "year"))
-rbp$Population = rbp$log_pop = rbp$log_bplpop = NULL
-rbp$wheat_moving_perc = rbp$wheat_allotment = NULL
-rbp = remove_outliers(rbp, c("rice_allotment", "rice_moving_perc", "bpl_pop"))
-
 rp = inner_join(rw, pop, by=c('State.UT', 'year'))
 rp$wheat_allotment = rp$log_pop = NULL
 rp = remove_outliers(rp, c("Population", "rice_allotment", "rice_moving_perc", "wheat_moving_perc"))
 
 #Rice allotment with population, percentage taken as moving average of past 3 years
 rice_pop_fit <- lm(rice_allotment ~ Population + rice_moving_perc, rp)
-summary(rice_pop_fit)$r.squared
-rice_pop_fit$coefficients
 summary(rice_pop_fit)
 
-rice_bpl_pop_fit <- lm(rice_allotment ~ bpl_pop + rice_moving_perc, rbp)
-summary(rice_bpl_pop_fit)$r.squared
-rice_bpl_pop_fit$coefficients
 
 #Other models built
 fit <- lm(rice_allotment ~ Population, rp)
@@ -107,44 +81,12 @@ summary(fit)$r.squared
 fit <- lm(rice_allotment ~ bpl_pop, rbp)
 summary(fit)$r.squared
 
-#Wheat with bpl population
-bpl_change_rate = c()
-ssr = c()
-for(bpl_cr in seq(-1, 3, 0.05))
-{
-  bpl = generate_bpl_data(pop, bpl_perc2011, bpl_cr)
-  wbp = inner_join(bpl, rw, on=c("State.UT", "year"))
-  fit <- lm(wheat_allotment ~ bpl_pop, wbp)
-  ssr_ = sum(fit$residuals ^ 2)
-  bpl_change_rate = c(bpl_change_rate, bpl_cr)
-  ssr = c(ssr, ssr_)
-}
-
-wheat_bpl_cr = bpl_change_rate[which(ssr == min(ssr))]
-plot(bpl_change_rate, ssr)
-bpl = generate_bpl_data(pop, bpl_perc2011, wheat_bpl_cr)
-wbp = inner_join(bpl, rw, on=c("State.UT", "year"))
-wbp$Population = wbp$log_pop = wbp$log_bplpop = NULL
-wbp$rice_allotment = wbp$rice_moving_perc = NULL
-
-wp = inner_join(rw, pop, by=c('State.UT', 'year'))
-wp$rice_allotment = wp$rice_moving_perc = wp$log_pop = NULL
-wp = remove_outliers(wp, c("Population", "wheat_moving_perc", "wheat_allotment"))
-
 #Wheat allotment with population, percentage as past 3 years moving average
 wheat_pop_fit <- lm(wheat_allotment ~ Population + wheat_moving_perc, wp)
-summary(wheat_pop_fit)$r.squared
+summary(wheat_pop_fit)
 
-
-#Other models built
-#Wheat allotment with bpl population, percentage taken as moving average of past 3 years
-wheat_bpl_pop_fit <- lm(wheat_allotment ~ bpl_pop + wheat_moving_perc, wbp)
-summary(wheat_bpl_pop_fit)$r.squared
 
 fit <- lm(wheat_allotment ~ Population, wp)
-summary(fit)$r.squared
-
-fit <- lm(wheat_allotment ~ bpl_pop, wbp)
 summary(fit)$r.squared
 
 #MODEL FORECASTING
