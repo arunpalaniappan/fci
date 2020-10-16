@@ -9,7 +9,7 @@ summary(pop_fit)$r.squared
 
 bpl_change_rate = c()
 ssr = c()
-for(bpl_cr in seq(-1, 3, 0.05))
+for(bpl_cr in seq(0, 2, 0.01))
 {
   bpl = generate_bpl_data(pop, bpl_perc2011, bpl_cr)
   tbp = inner_join(all_off, bpl, on=c("State.UT", "year"))
@@ -73,15 +73,10 @@ rp = remove_outliers(rp, c("Population", "rice_allotment", "rice_moving_perc", "
 rice_pop_fit <- lm(rice_allotment ~ Population + rice_moving_perc, rp)
 summary(rice_pop_fit)
 
-
-#Other models built
-fit <- lm(rice_allotment ~ Population, rp)
-summary(fit)$r.squared
-
-fit <- lm(rice_allotment ~ bpl_pop, rbp)
-summary(fit)$r.squared
-
 #Wheat allotment with population, percentage as past 3 years moving average
+wp = inner_join(rw, pop, by=c('State.UT', 'year'))
+wp$rice_allotment = rp$log_pop = NULL
+
 wheat_pop_fit <- lm(wheat_allotment ~ Population + wheat_moving_perc, wp)
 summary(wheat_pop_fit)
 
@@ -90,7 +85,7 @@ fit <- lm(wheat_allotment ~ Population, wp)
 summary(fit)$r.squared
 
 #MODEL FORECASTING
-prediction_data = pop %>% filter(year > 2020  & year < 2031)
+prediction_data = pop %>% filter(year >= 2020  & year <= 2026)
 prediction_data$log_pop = NULL
 
 #To give a confidence level of estimates, modify the code by making population as pop * 0.95, pop*1.05 
@@ -109,11 +104,11 @@ prediction_data$Population = prediction_data$rice_moving_perc = prediction_data$
 #Making the years into column wise. A better shorter code could be written using spread()
 # and tidyr but note getting desired result because the columns where spread
 #year wise with multiple rows for a state. Each state should be in a row.
-rice_prediction = prediction_data %>% filter(year == 2021)
-names(rice_prediction)[which(names(rice_prediction) == "predicted_allotment")] = 2021
+rice_prediction = prediction_data %>% filter(year == 2020)
+names(rice_prediction)[which(names(rice_prediction) == "predicted_allotment")] = 2020
 
 rice_prediction$year = NULL
-for(ye in c(2022:2030))
+for(ye in c(2021:2026))
 {
   temp = prediction_data %>% filter(year == ye)
   temp$year = NULL
@@ -122,18 +117,18 @@ for(ye in c(2022:2030))
 }
 
 all_india = c("All India")
-for(year in c(2021:2030))
+for(year in c(2021:2026))
 {
   year = as.character(year)
   rice_prediction[year] = round(rice_prediction[year], 2)
   all_india = c(all_india, sum(rice_prediction[year]))
 }
 rice_prediction = rbind(rice_prediction, all_india)
-rice_prediction[, 2:11] = sapply(rice_prediction[, 2:11], as.numeric)
+rice_prediction[, 2:7] = sapply(rice_prediction[, 2:7], as.numeric)
 write.xlsx(rice_prediction, "Data/rice_prediction.xlsx")
 
 #Making predictions for wheat
-prediction_data = pop %>% filter(year > 2020  & year < 2031)
+prediction_data = pop %>% filter(year >= 2020  & year <= 2026)
 prediction_data$log_pop = NULL
 
 prediction_data = inner_join(prediction_data, rice_wheat, by=c('State.UT'))
@@ -144,10 +139,10 @@ prediction_data$rice_allotment = prediction_data$wheat_allotment = NULL
 prediction_data$predicted_allotment = predict(wheat_pop_fit, prediction_data)
 prediction_data$Population = prediction_data$rice_moving_perc = prediction_data$wheat_moving_perc = NULL
 
-wheat_prediction = prediction_data %>% filter(year == 2021)
-names(wheat_prediction)[which(names(wheat_prediction) == "predicted_allotment")] = 2021
+wheat_prediction = prediction_data %>% filter(year == 2020)
+names(wheat_prediction)[which(names(wheat_prediction) == "predicted_allotment")] = 2020
 wheat_prediction$year = NULL
-for(ye in c(2022:2030))
+for(ye in c(2021:2026))
 {
   temp = prediction_data %>% filter(year == ye)
   temp$year = NULL
@@ -156,14 +151,14 @@ for(ye in c(2022:2030))
 }
 
 all_india = c("All India")
-for(year in c(2021:2030))
+for(year in c(2020:2026))
 {
   year = as.character(year)
   wheat_prediction[year] = round(wheat_prediction[year], 2)
   all_india = c(all_india, sum(wheat_prediction[year]))
 }
 wheat_prediction = rbind(wheat_prediction, all_india)
-wheat_prediction[, 2:11] = sapply(wheat_prediction[, 2:11], as.numeric)
+wheat_prediction[, 2:7] = sapply(wheat_prediction[, 2:7], as.numeric)
 write.xlsx(wheat_prediction, "Data/wheat_prediction.xlsx")
 
 #Forecasting expenditure.
@@ -174,15 +169,15 @@ quintal_mt_conversion = 10000
 price = 1868 * quintal_mt_conversion
 all_india = rice_prediction[which(rice_prediction$State.UT == "All India"),]
 crore = 10000000
-temp = all_india[, 2:11]*price / crore
+temp = all_india[, 2:7]*price / crore
 rice_expenditure = gather(temp, key="year", "rice expenditure")
-
+10000/10000000
 #Forecast for wheat price
 #Rs. 1925 per quintal
 price = 1925 * quintal_mt_conversion
 all_india = wheat_prediction[which(wheat_prediction$State.UT == "All India"),]
 crore = 10000000
-temp = all_india[, 2:11]*price / crore
+temp = all_india[, 2:7]*price / crore
 wheat_expenditure = gather(temp, key="year", "wheat expenditure")
 
 rice_wheat_expenditure = inner_join(rice_expenditure, wheat_expenditure, by=c("year"))
@@ -191,10 +186,6 @@ rice_wheat_expenditure$`wheat expenditure` = round(rice_wheat_expenditure$`wheat
 rice_wheat_expenditure$year = as.numeric(rice_wheat_expenditure$year)
 write.xlsx(rice_wheat_expenditure, "Data/rice_wheat_expenditure.xlsx")
 
-#Analysis with total allotment
-ao_pop = inner_join(all_off, pop, by=c('State.UT', 'year'))
-fit <- lm(ao_pop$allotment ~ ao_pop$Population)
-summary(fit)$r.squared
 
 ## Prediction with previous year offtake
 ri = rice

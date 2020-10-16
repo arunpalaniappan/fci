@@ -1,7 +1,0 @@
-Road length is the length of municipal roads in the states.
-
-Orissa is odisha, pondicherry is puducherry, uttaranchal is uttarkhand.
-
-BPL for andhra should be calculated only till 2013. After that, andhra was bifurcated. In that case, we don't know what proportion are in andhra and in telangana.
-
-utilisation_ratio_state_wise_2010_2019.xlsx was made by aggregating all_off data sets. By running the code in make_datasets.R, outliers in all_off will be removed and this will result in NA. To prevent getting too many NAs in utilisation_ratio_state_wise_2010_2019.xlsx, the line used to remove outliers should be commented and make_datasets.R should be run.

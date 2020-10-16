@@ -51,11 +51,11 @@ zone_ao$gap = zone_ao$allotment - zone_ao$offtake
 year_total_ao$utilisation_ratio = year_total_ao$offtake / year_total_ao$allotment
 
 ao_road = inner_join(all_off, road_l, by=c('State.UT', 'year'))
-ao_road$offtake = ao_road$allotment = ao_road$zone = NULL
+#ao_road$offtake = ao_road$allotment = ao_road$zone = NULL
 ao_road = inner_join(ao_road, roadd_sqkm, by=c('State.UT', 'year'))
 ao_road = ao_road[which(ao_road$utilisation_ratio < 1 & ao_road$utilisation_ratio > 0),]
-fit <- lm(utilisation_ratio ~ ro_log_length, ao_road)
-summary(fit)$r.squared
+fit <- lm(allotment ~ ro_length, ao_road)
+summary(fit)
 fit
 summary(fit)
 
@@ -79,7 +79,6 @@ fit
 dim(ao_rail)
 
 
-
 #Analysis 7 - with state GSDP
 ao_gsdp = inner_join(all_off, gsdp, by=c('State.UT', 'year'))
 ao_gsdp = ao_gsdp[which(ao_gsdp$utilisation_ratio < 1 & ao_gsdp$utilisation_ratio > 0),]
@@ -89,12 +88,16 @@ fit <- lm(utilisation_ratio ~ log_gsdp, ao_gsdp)
 summary(fit)
 fit
 
+ao_factors = inner_join(ao_road, ao_sh, by=c('State.UT', 'year', 'utilisation_ratio'))
+ao_factors = inner_join(ao_rail, ao_factors, by=c('State.UT', 'year', 'utilisation_ratio'))
+ao_factors = inner_join(ao_gsdp, ao_factors, by=c('State.UT', 'year', 'utilisation_ratio'))
+fit <- lm(utilisation_ratio ~ ro_log_length + sh_log_length + rw_log_length + log_gsdp, ao_factors)
+summary(fit)
 #Analysis 8 - With DO Count
 sao = sao[which(sao$utilisation_ratio < 1 & sao$utilisation_ratio > 0),]
 fit <- lm(utilisation_ratio ~ log(do_count), sao)
 summary(fit)
 fit
-
 
 #Analysis 9 - with DCP
 cor(df_dcp$dcp, df_dcp$utilisation_ratio)
